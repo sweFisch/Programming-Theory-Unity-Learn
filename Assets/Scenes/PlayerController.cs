@@ -5,14 +5,18 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] float speed = 5f;
+    [SerializeField] private float speed = 5f;
+    [SerializeField] private LayerMask _layerMaskBlock; // blocking objects should be on this layer mask
+    [SerializeField] private float _detectionRadius = 1f;
 
-    [SerializeField] Transform _target;
+    [SerializeField] Transform _transformDebugtarget; // Debug purpose
 
     private Vector2 _moveInput;
     private Vector3 _moveDirection;
 
     private Vector3 _destination;
+    private Quaternion _lookDirection;
+    private float rotationSpeed = 2000f;
 
     private Transform _transform;
 
@@ -53,16 +57,26 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        //_transform.Translate(_moveDirection * Time.deltaTime * speed);
 
         // 0.1f should give some leeway with the timeing of the button press
         float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
         if (distanceFromTarget < 0.1f) //Mathf.Epsilon
         {
-            _destination += _moveDirection;
+            if (CheckDirection(_moveDirection))
+            {
+                _destination += _moveDirection;
+            }
+
+            // Rotate the player in the direction of movement Save the direction of movement
+            if (_moveDirection != Vector3.zero)
+            {
+                _lookDirection = Quaternion.LookRotation(_moveDirection);
+                //transform.rotation = _lookDirection;
+            }
 
             // DEBUG MOVE TARGET
-            _target.position = _destination;
+            if (_transformDebugtarget != null) { _transformDebugtarget.position = _destination; }
+
 
             if (distanceFromTarget < Mathf.Epsilon)
             {
@@ -73,5 +87,28 @@ public class PlayerController : MonoBehaviour
         {
             _transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * speed);
         }
+
+        RotatePlayerInDirectionOfMovement();
+
+        // TODO make a raycast checking the ground beneth the player determining if its water on landing and standing still
+
+    }
+
+    private void RotatePlayerInDirectionOfMovement()
+    {
+        // smoother rotation of the player _lookDirection is set at input detection
+        transform.rotation = Quaternion.Slerp(transform.rotation, _lookDirection, Time.deltaTime * 40f);
+
+        //float deegreesPerSecond = rotationSpeed * Time.deltaTime;
+        //transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookDirection, deegreesPerSecond);
+    }
+
+    private bool CheckDirection(Vector3 direction)
+    {
+        if(Physics.Raycast(_destination, direction, out RaycastHit hit, _detectionRadius, _layerMaskBlock))
+        {
+            return false;
+        }
+        return true;
     }
 }
