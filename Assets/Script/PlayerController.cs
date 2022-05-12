@@ -65,6 +65,9 @@ public class PlayerController : MonoBehaviour
             if (CheckDirection(_moveDirection))
             {
                 _destination += _moveDirection;
+
+                // special case turtle and logs ?
+                _destination = RoundVector3(_destination); // round to whole numbers
             }
 
             // Rotate the player in the direction of movement Save the direction of movement
@@ -110,5 +113,17 @@ public class PlayerController : MonoBehaviour
             return false;
         }
         return true;
+    }
+
+    private Vector3 RoundVector3(Vector3 inputVector)
+    {
+        inputVector = new Vector3(Mathf.Round(inputVector.x), Mathf.Round(inputVector.y), Mathf.Round(inputVector.z));
+        return inputVector;
+    }
+
+    public void ResetPlayer()
+    {
+        _destination = Vector3.zero;
+        _transform.position = Vector3.zero;
     }
 }
