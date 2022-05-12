@@ -10,12 +10,14 @@ public class PlayerDeath : MonoBehaviour
     private const string CROCODILE = "Crocodile";
     private const string SPIKE = "Spike";
 
-    // Maybee do a interact class that interact with things?
+    [SerializeField] PlayerAnimationController _playerAnimationController;
+
 
     private void OnTriggerEnter(Collider other)
     {
         if(other.CompareTag(CAR))
         {
+            _playerAnimationController.TriggerDeathOverRunAnimation();
             OverRunByCar();
         }
 
@@ -33,6 +35,7 @@ public class PlayerDeath : MonoBehaviour
     public void OverRunByCar()
     {
         // play animation to make it flat
+
         TakeLife();
     }
 
@@ -55,6 +58,15 @@ public class PlayerDeath : MonoBehaviour
         // Remove life
         // Wait for animation to finish
         // Reset the player
+
+        StartCoroutine(ResetWaitTime());
+        
+    }
+
+    IEnumerator ResetWaitTime()
+    {
+        Debug.Log("Player Lost Life , Waiting 2 sek, before restart");
+        yield return new WaitForSeconds(2f);
         GetComponent<PlayerController>().ResetPlayer();
     }
 

@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
 
     private Transform _transform;
 
+    private PlayerAnimationController _playerAnimationController;
+
     public void OnMove(InputAction.CallbackContext context)
     {
         
@@ -48,6 +50,7 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         _transform = transform;
+        _playerAnimationController = GetComponent<PlayerAnimationController>();
     }
 
     void Start()
@@ -62,12 +65,16 @@ public class PlayerController : MonoBehaviour
         float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
         if (distanceFromTarget < 0.1f) //Mathf.Epsilon
         {
+            _playerAnimationController.EndJumpAnimation();
+
             if (CheckDirection(_moveDirection))
             {
                 _destination += _moveDirection;
 
                 // special case turtle and logs ?
                 _destination = RoundVector3(_destination); // round to whole numbers
+
+                
             }
 
             // Rotate the player in the direction of movement Save the direction of movement
@@ -84,11 +91,14 @@ public class PlayerController : MonoBehaviour
             if (distanceFromTarget < Mathf.Epsilon)
             {
                 _transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * speed);
+
+                
             }
         }
         else
         {
             _transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * speed);
+            _playerAnimationController.TriggerJumpAnimation();
         }
 
         RotatePlayerInDirectionOfMovement();
@@ -123,6 +133,7 @@ public class PlayerController : MonoBehaviour
 
     public void ResetPlayer()
     {
+        _playerAnimationController.ResetPlayerAnimations();
         _destination = Vector3.zero;
         _transform.position = Vector3.zero;
     }
