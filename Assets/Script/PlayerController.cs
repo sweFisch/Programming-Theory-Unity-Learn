@@ -32,7 +32,6 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        
         _moveInput = context.action.ReadValue<Vector2>();
 
         // Force binary left, right, up, down. no sidway motion
@@ -48,11 +47,7 @@ public class PlayerController : MonoBehaviour
         {
             _moveDirection = Vector3.zero;
         }
-
-        //_moveDirection = new Vector3(_moveInput.x, 0f, _moveInput.y);
-
         //Debug.Log(_moveInput);
-
     }
 
     private void Awake()
@@ -72,90 +67,99 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
 
-        if (_playerDeath.IsAlive == false) { return; }
+        if (_playerDeath.IsAlive == false) { return; } // Dont allow input if player is dead
 
+        HandleInputSetDestination();
+        DebugMovementDestinationUpdatePosition();
+
+        HandleMovingPlattformDestinations();
+
+        HandlePlayerMovemet();
+
+        RotatePlayerInDirectionOfMovement();
+    }
+
+    private void HandlePlayerMovemet()
+    {
+        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
+        if (distanceFromTarget < 0.05f) //Mathf.Epsilon
+        {
+            _playerAnimationController.EndJumpAnimation();
+
+            CheckLandingSurface(_transform.position); // check the landing surface
+
+            if (distanceFromTarget < Mathf.Epsilon)
+            {
+                //_transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * _currentSpeed);
+
+
+            }
+            
+        }
+        else
+        {
+            _transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * _currentSpeed);
+        }
+    }
+
+    private void HandleMovingPlattformDestinations()
+    {
+        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
         if (_currentMovingBlock != null)
         {
             //_currentSpeed = _currentMovingBlockSpeed; // onödigt ?? kanske
             _destination = _currentMovingBlock.position;
-            //_transform.position = _currentMovingBlock.position;
 
-            if(_moveDirection == Vector3.left || _moveDirection == Vector3.right)
+            if (distanceFromTarget < 0.05f)
             {
-                
-                if(CheckIfMovingPlattform(_transform.position + _moveDirection))
-                {
-                    _destination = _currentMovingBlock.position;
-                }
-                else
-                {
-                    _currentMovingBlock = null;
-                    SetNewDestinationFromInput();
-                    SaveRotationOfPlayerInput();
-                }
+            _transform.position = _currentMovingBlock.position;
             }
-            else if (_moveDirection == Vector3.zero)
-            {
-
-            }
-            else
-            {
-                _currentMovingBlock = null;
-                SetNewDestinationFromInput();
-                SaveRotationOfPlayerInput();
-            }
-
-            // DEBUG MOVE TARGET
-            if (_transformDebugtarget != null) { _transformDebugtarget.position = _destination; }
         }
         else
         {
             _currentSpeed = _frogSpeed;
         }
-
-        // 0.1f should give some leeway with the timeing of the button press
-        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
-        if (distanceFromTarget < 0.05f) //Mathf.Epsilon
-        {
-            _playerAnimationController.EndJumpAnimation();
-            CheckSurface(_transform.position);
-
-            SetNewDestinationFromInput();
-
-            SaveRotationOfPlayerInput();
-
-            // DEBUG MOVE TARGET
-            if (_transformDebugtarget != null) { _transformDebugtarget.position = _destination; }
-
-
-            if (distanceFromTarget < Mathf.Epsilon)
-            {
-                _transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * _currentSpeed);
-
-                if (_currentMovingBlock == null)
-                {
-                    _destination = RoundVector3(_destination); // round to whole numbers
-                }
-            }
-        }
-        else
-        {
-            _transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * _currentSpeed);
-            _playerAnimationController.TriggerJumpAnimation();
-        }
-
-        RotatePlayerInDirectionOfMovement();
-
-        // TODO make a raycast checking the ground beneth the player determining if its water on landing and standing still
-
     }
 
-    private void SetNewDestinationFromInput()
+    private void DebugMovementDestinationUpdatePosition()
     {
-        if (CheckDirection(_moveDirection)) // blocks player from jumping into block terrain
+        // DEBUG MOVE TARGET
+        if (_transformDebugtarget != null) { _transformDebugtarget.position = _destination; }
+    }
+
+    private void HandleInputSetDestination()
+    {
+        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
+
+        if(distanceFromTarget > 0.1f) { return; } //if not close enough to target return
+
+        if (_moveDirection != Vector3.zero && CheckDirection(_moveDirection)) // blocks player from jumping into block terrain
         {
             _destination += _moveDirection;
+            SaveRotationOfPlayerInput();
+
+            if (CheckIfMovingPlattform(_destination))
+            {
+                _playerAnimationController.TriggerJumpAnimation(); // TODO this is not working 
+            }
+            else if (_currentMovingBlock == null)
+            {
+                _destination = RoundVector3(_destination); // round to whole numbers
+            }
+
+            if (_currentMovingBlock == null)
+            {
+                _playerAnimationController.TriggerJumpAnimation();
+            }
         }
+    }
+    private bool CheckDirection(Vector3 direction)
+    {
+        if (Physics.Raycast(_destination, direction, out RaycastHit hit, _detectionRadius, _layerMaskBlock))
+        {
+            return false;
+        }
+        return true;
     }
 
     private void SaveRotationOfPlayerInput()
@@ -168,7 +172,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void CheckSurface(Vector3 pointToCheck)
+    private void CheckLandingSurface(Vector3 pointToCheck)
     {
         
         if(Physics.Raycast((pointToCheck + (Vector3.up*0.5f)), Vector3.down,out RaycastHit hit, _detectionRadius,_layerMaskTerrain))
@@ -199,16 +203,22 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast((pointToCheck + (Vector3.up * 0.5f)), Vector3.down, out RaycastHit hit, _detectionRadius, _layerMaskTerrain))
         {
             Terrain terrain = hit.collider.GetComponent<Terrain>();
-            if (terrain == null) { return false; }
+            if (terrain == null) 
+            {
+                _currentMovingBlock = null;
+                return false; 
+            }
 
             if (terrain.terrainType == TerrainType.MovingBlock)
             {
                 _currentMovingBlock = terrain.transform;
+                
                 _currentMovingBlockSpeed = terrain.GetComponent<Mover>().GetSpeed() + _frogSpeed;
                 //Debug.Log("Standing on moving block");
                 return true;
             }
         }
+        _currentMovingBlock = null;
         return false;
     }
 
@@ -222,14 +232,7 @@ public class PlayerController : MonoBehaviour
         //transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookDirection, deegreesPerSecond);
     }
 
-    private bool CheckDirection(Vector3 direction)
-    {
-        if(Physics.Raycast(_destination, direction, out RaycastHit hit, _detectionRadius, _layerMaskBlock))
-        {
-            return false;
-        }
-        return true;
-    }
+
 
     private Vector3 RoundVector3(Vector3 inputVector)
     {
