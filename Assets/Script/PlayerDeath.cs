@@ -12,12 +12,17 @@ public class PlayerDeath : MonoBehaviour
 
     [SerializeField] PlayerAnimationController _playerAnimationController;
 
+    private void Start()
+    {
+        IsAlive = true;
+    }
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!IsAlive) { return; }
+
         if(other.CompareTag(CAR))
         {
-            _playerAnimationController.TriggerDeathOverRunAnimation();
             OverRunByCar();
         }
 
@@ -34,8 +39,7 @@ public class PlayerDeath : MonoBehaviour
 
     public void OverRunByCar()
     {
-        // play animation to make it flat
-
+        _playerAnimationController.TriggerDeathOverRunAnimation();
         TakeLife();
     }
 
@@ -47,7 +51,8 @@ public class PlayerDeath : MonoBehaviour
 
     public void Drowning()
     {
-        // play animation for drowning
+        // play animation for drowning - TODO make drowning animation
+        _playerAnimationController.TriggerDeathOverRunAnimation();
         // play particle system
         TakeLife();
     }
@@ -68,6 +73,7 @@ public class PlayerDeath : MonoBehaviour
         Debug.Log("Player Lost Life , Waiting 2 sek, before restart");
         yield return new WaitForSeconds(2f);
         GetComponent<PlayerController>().ResetPlayer();
+        IsAlive = true;
     }
 
 }

@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class Mover : MonoBehaviour
 {
-    [SerializeField] private float speed = 5f;
+    [SerializeField] private float _speed = 5f;
 
     Transform _transform;
 
-    float screenExtent = 20f;
+    float _screenExtent = 20f;
 
-    [SerializeField] bool isMovingRight = false;
+    [SerializeField] bool _isMovingRight = false;
 
     private void Start()
     {
@@ -19,27 +19,32 @@ public class Mover : MonoBehaviour
         //Debug.Log($" {transform.name } is moving  { transform.forward}");
         if(transform.forward.x > 0f)
         {
-            isMovingRight = true;
+            _isMovingRight = true;
         }//else moving left
 
     }
 
     private void Update()
     {
-        _transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        _transform.Translate(Vector3.forward * _speed * Time.deltaTime);
 
         CheckIfOutsideBounds();
     }
 
     private void CheckIfOutsideBounds()
     {
-        if (isMovingRight && _transform.position.x > screenExtent)
+        if (_isMovingRight && _transform.position.x > _screenExtent)
         {
-            _transform.position = new Vector3(-screenExtent, _transform.position.y, transform.position.z);
+            _transform.position = new Vector3(-_screenExtent, _transform.position.y, transform.position.z);
         }
-        if (!isMovingRight && _transform.position.x < -screenExtent)
+        if (!_isMovingRight && _transform.position.x < -_screenExtent)
         {
-            _transform.position = new Vector3(screenExtent, _transform.position.y, transform.position.z);
+            _transform.position = new Vector3(_screenExtent, _transform.position.y, transform.position.z);
         }
+    }
+
+    public float GetSpeed()
+    {
+        return _speed;
     }
 }
