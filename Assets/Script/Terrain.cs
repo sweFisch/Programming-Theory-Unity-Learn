@@ -7,6 +7,7 @@ public class Terrain : MonoBehaviour
     public TerrainType terrainType;
 }
 
+
 [System.Serializable]
 public enum TerrainType
 {

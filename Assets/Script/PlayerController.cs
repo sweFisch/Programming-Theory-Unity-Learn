@@ -6,8 +6,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float _frogSpeed = 5f;
-    private float _currentSpeed; // the speed the frog is moving + eventual plattform speed
+    [SerializeField] private float _movementSpeed = 7f;
 
     [SerializeField] private LayerMask _layerMaskBlock; // blocking objects should be on this layer mask
     [SerializeField] private LayerMask _layerMaskTerrain;
@@ -20,7 +19,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 _destination;
     private Quaternion _lookDirection;
-    private float rotationSpeed = 2000f;
+    //private float rotationSpeed = 2000f;
 
     private Transform _transform;
 
@@ -28,7 +27,11 @@ public class PlayerController : MonoBehaviour
     private PlayerDeath _playerDeath;
 
     private Transform _currentMovingBlock;
-    private float _currentMovingBlockSpeed;
+
+    private float _distanceLeeway = 0.05f;
+
+    [SerializeField] private float _lerpTime = 0f;
+    private Vector3 _lerpStartPos;
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -61,7 +64,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         _destination = _transform.position;
-        _currentSpeed = _frogSpeed;
+        _lerpStartPos = transform.position;
     }
 
     void Update()
@@ -70,6 +73,7 @@ public class PlayerController : MonoBehaviour
         if (_playerDeath.IsAlive == false) { return; } // Dont allow input if player is dead
 
         HandleInputSetDestination();
+
         DebugMovementDestinationUpdatePosition();
 
         HandleMovingPlattformDestinations();
@@ -79,59 +83,12 @@ public class PlayerController : MonoBehaviour
         RotatePlayerInDirectionOfMovement();
     }
 
-    private void HandlePlayerMovemet()
-    {
-        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
-        if (distanceFromTarget < 0.05f) //Mathf.Epsilon
-        {
-            _playerAnimationController.EndJumpAnimation();
-
-            CheckLandingSurface(_transform.position); // check the landing surface
-
-            if (distanceFromTarget < Mathf.Epsilon)
-            {
-                //_transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * _currentSpeed);
-
-
-            }
-            
-        }
-        else
-        {
-            _transform.position = Vector3.MoveTowards(_transform.position, _destination, Time.deltaTime * _currentSpeed);
-        }
-    }
-
-    private void HandleMovingPlattformDestinations()
-    {
-        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
-        if (_currentMovingBlock != null)
-        {
-            //_currentSpeed = _currentMovingBlockSpeed; // onödigt ?? kanske
-            _destination = _currentMovingBlock.position;
-
-            if (distanceFromTarget < 0.05f)
-            {
-            _transform.position = _currentMovingBlock.position;
-            }
-        }
-        else
-        {
-            _currentSpeed = _frogSpeed;
-        }
-    }
-
-    private void DebugMovementDestinationUpdatePosition()
-    {
-        // DEBUG MOVE TARGET
-        if (_transformDebugtarget != null) { _transformDebugtarget.position = _destination; }
-    }
-
     private void HandleInputSetDestination()
     {
         float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
 
-        if(distanceFromTarget > 0.1f) { return; } //if not close enough to target return
+        if (distanceFromTarget > _distanceLeeway) { return; } //if not close enough to target return
+
 
         if (_moveDirection != Vector3.zero && CheckDirection(_moveDirection)) // blocks player from jumping into block terrain
         {
@@ -140,18 +97,19 @@ public class PlayerController : MonoBehaviour
 
             if (CheckIfMovingPlattform(_destination))
             {
-                _playerAnimationController.TriggerJumpAnimation(); // TODO this is not working 
+                _playerAnimationController.TriggerJumpAnimation();
             }
             else if (_currentMovingBlock == null)
             {
-                _destination = RoundVector3(_destination); // round to whole numbers
+                _playerAnimationController.TriggerJumpAnimation();
+                _destination = RoundVector3(_destination); // round to whole numbers if not on a moving plattform
             }
 
-            if (_currentMovingBlock == null)
-            {
-                _playerAnimationController.TriggerJumpAnimation();
-            }
         }
+        // Reset the Lerp Time to start a new movement
+        _lerpTime = 0f;
+        _lerpStartPos = transform.position;
+
     }
     private bool CheckDirection(Vector3 direction)
     {
@@ -160,6 +118,50 @@ public class PlayerController : MonoBehaviour
             return false;
         }
         return true;
+    }
+
+    private void DebugMovementDestinationUpdatePosition()
+    {
+        // DEBUG MOVE TARGET
+        if (_transformDebugtarget != null) { _transformDebugtarget.position = _destination; }
+    }
+
+    private void HandleMovingPlattformDestinations()
+    {
+        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
+        if (_currentMovingBlock != null)
+        {
+            _destination = _currentMovingBlock.position;
+
+            if (distanceFromTarget < _distanceLeeway)
+            {
+                _transform.position = _currentMovingBlock.position;
+            }
+        }
+    }
+
+    private void HandlePlayerMovemet()
+    {
+        float distanceFromTarget = Vector3.Distance(_transform.position, _destination);
+        _lerpTime += Time.deltaTime * _movementSpeed;
+        _lerpTime = Mathf.Clamp(_lerpTime, 0f, 1f);
+
+        if(distanceFromTarget < 0.1f)
+        {
+            _playerAnimationController.EndJumpAnimation();
+            CheckLandingSurface(_transform.position); // check the landing surface
+        }
+
+        if(distanceFromTarget > 0.01f)
+        {
+            //transform.position = Vector3.Lerp(transform.position, _destination, _lerpTime); // not liniar movement ,ease out 
+            transform.position = Vector3.Lerp(_lerpStartPos, _destination, _lerpTime);
+        }
+        else
+        {
+            transform.position = _destination;
+            CheckLandingSurface(_transform.position); // check the landing surface
+        }
     }
 
     private void SaveRotationOfPlayerInput()
@@ -184,7 +186,7 @@ public class PlayerController : MonoBehaviour
 
             if(terrain.terrainType == TerrainType.Water)
             {
-                Debug.Log("Fell into water!");
+                //Debug.Log("Fell into water!");
                 _destination = _transform.position;
                 _playerDeath.Drowning();
 
@@ -192,8 +194,7 @@ public class PlayerController : MonoBehaviour
             if(terrain.terrainType == TerrainType.MovingBlock)
             {
                 _currentMovingBlock = terrain.transform;
-                _currentMovingBlockSpeed = terrain.GetComponent<Mover>().GetSpeed() + _frogSpeed;
-                Debug.Log("Standing on moving block");
+                //Debug.Log("Standing on moving block");
             }
         }
     }
@@ -213,7 +214,6 @@ public class PlayerController : MonoBehaviour
             {
                 _currentMovingBlock = terrain.transform;
                 
-                _currentMovingBlockSpeed = terrain.GetComponent<Mover>().GetSpeed() + _frogSpeed;
                 //Debug.Log("Standing on moving block");
                 return true;
             }
@@ -231,7 +231,6 @@ public class PlayerController : MonoBehaviour
         //float deegreesPerSecond = rotationSpeed * Time.deltaTime;
         //transform.rotation = Quaternion.RotateTowards(transform.rotation, _lookDirection, deegreesPerSecond);
     }
-
 
 
     private Vector3 RoundVector3(Vector3 inputVector)

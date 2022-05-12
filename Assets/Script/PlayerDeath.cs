@@ -11,6 +11,8 @@ public class PlayerDeath : MonoBehaviour
     private const string SPIKE = "Spike";
 
     [SerializeField] PlayerAnimationController _playerAnimationController;
+    [SerializeField] GameObject gfxMesh;
+    [SerializeField] ParticleSystem _drowningParticles;
 
     private void Start()
     {
@@ -52,7 +54,9 @@ public class PlayerDeath : MonoBehaviour
     public void Drowning()
     {
         // play animation for drowning - TODO make drowning animation
-        _playerAnimationController.TriggerDeathOverRunAnimation();
+        //_playerAnimationController.TriggerDeathOverRunAnimation();
+        gfxMesh.SetActive(false);
+        _drowningParticles.Play();
         // play particle system
         TakeLife();
     }
@@ -74,6 +78,7 @@ public class PlayerDeath : MonoBehaviour
         yield return new WaitForSeconds(2f);
         GetComponent<PlayerController>().ResetPlayer();
         IsAlive = true;
+        gfxMesh.SetActive(true);
     }
 
 }

@@ -1304,7 +1304,7 @@ MonoBehaviour:
     ModeOverride: 0
     LensShift: {x: 0, y: 0}
     GateFit: 2
-    m_SensorSize: {x: 1.7765151, y: 1}
+    m_SensorSize: {x: 1.7768362, y: 1}
   m_Transitions:
     m_BlendHint: 0
     m_InheritPosition: 0
@@ -2425,6 +2425,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 4491336071645573818, guid: 998de07c8f2d8814aa6aa2727f804010,
+        type: 3}
+      propertyPath: _movementSpeed
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 4491336071645573818, guid: 998de07c8f2d8814aa6aa2727f804010,
         type: 3}
