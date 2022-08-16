@@ -50,6 +50,7 @@ public class PlayerController : MonoBehaviour
         {
             _moveDirection = Vector3.zero;
         }
+
         //Debug.Log(_moveInput);
     }
 
@@ -95,6 +96,8 @@ public class PlayerController : MonoBehaviour
 
     private void TryToInteract()
     {
+        //Debug.Log("TRY TO INTERACT"); // this happens on multiple frames during a button press
+
         if (Physics.Raycast(_transform.position, _moveDirection, out RaycastHit hit, _detectionRadius, _layerMaskBlock))
         {
             Interaction interactionObj = hit.collider.GetComponent<Interaction>();

@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class PlayerDeath : MonoBehaviour
 {
-    public bool IsAlive { get; set; }
+
+    // Encapsulation - Getters and setters
+    public bool IsAlive { get; private set; }
 
     private const string CAR = "Car";
     private const string CROCODILE = "Crocodile";

@@ -14,8 +14,8 @@ public class PlayerGFX : MonoBehaviour
             foreach (var meshRenderer in primaryColorMeshesArray)
             {
                 meshRenderer.material.SetColor("_BaseColor", color);
-                Debug.Log("Random Color");
             }
+            Debug.Log("Change Primary Player Color");
         }
     }
 }
