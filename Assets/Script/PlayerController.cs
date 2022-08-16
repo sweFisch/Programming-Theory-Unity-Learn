@@ -81,6 +81,28 @@ public class PlayerController : MonoBehaviour
         HandlePlayerMovemet();
 
         RotatePlayerInDirectionOfMovement();
+
+        HandleInteraction();
+    }
+
+    private void HandleInteraction()
+    {
+        if(!CheckDirection(_moveDirection))
+        {
+            TryToInteract();
+        }
+    }
+
+    private void TryToInteract()
+    {
+        if (Physics.Raycast(_transform.position, _moveDirection, out RaycastHit hit, _detectionRadius, _layerMaskBlock))
+        {
+            Interaction interactionObj = hit.collider.GetComponent<Interaction>();
+            if(interactionObj != null)
+            {
+                interactionObj.Interact();
+            }
+        }
     }
 
     private void HandleInputSetDestination()
@@ -89,11 +111,12 @@ public class PlayerController : MonoBehaviour
 
         if (distanceFromTarget > _distanceLeeway) { return; } //if not close enough to target return
 
+        SaveRotationOfPlayerInput();
 
         if (_moveDirection != Vector3.zero && CheckDirection(_moveDirection)) // blocks player from jumping into block terrain
         {
             _destination += _moveDirection;
-            SaveRotationOfPlayerInput();
+            //SaveRotationOfPlayerInput();
 
             if (CheckIfMovingPlattform(_destination))
             {
