@@ -7,11 +7,29 @@ using UnityEngine.SceneManagement;
 
 public class MainUI : MonoBehaviour
 {
+    public TextMeshProUGUI highScoreText;
 
 
+    public TextMeshProUGUI playerNameInputFeild;
+
+    private MainManager mainManager;
+
+    private void Start()
+    {
+        mainManager = MainManager.Instance;
+        UpdateHighScoreText();
+    }
+
+    public void UpdateHighScoreText()
+    {
+        highScoreText.text = mainManager.GetCurrentHighScore();
+    }
 
     public void StartGameButton()
     {
+        //get name form input field and set it in Main Manager
+        mainManager.SetCurrentPlayerName(playerNameInputFeild.text);
+
         SceneManager.LoadScene(1);
     }
 

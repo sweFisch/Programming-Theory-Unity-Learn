@@ -84,11 +84,25 @@ public class PlayerDeath : MonoBehaviour
 
     IEnumerator ResetWaitTime()
     {
+        MainManager mainManager = MainManager.Instance;
+        if(mainManager != null)
+        {
+            mainManager.SaveCurrentPlayerScore(); // try to update the current session score
+        }
+
         Debug.Log("Player Lost Life , Waiting 2 sek, before restart");
         yield return new WaitForSeconds(2f);
         GetComponent<PlayerController>().ResetPlayer();
+        GetComponent<PlayerScore>().ResetScore(); // Resets the score, if Lives save and add scores
+
         IsAlive = true;
         gfxMesh.SetActive(true);
+
+        //TODO Scene flow Lives ??
+        if (mainManager != null)
+        {
+            mainManager.GoToMainMenue();
+        }
     }
 
 }

@@ -152,6 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbd5f6f09aefd284ab76b90754c3e1fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  score: 0
 --- !u!4 &7523533
 Transform:
   m_ObjectHideFlags: 0
@@ -2157,6 +2158,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f4cf018105e73640848c2573f77002b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  highScoreText: {fileID: 1185188492}
+  playerNameInputFeild: {fileID: 362128393}
 --- !u!114 &1470212237
 MonoBehaviour:
   m_ObjectHideFlags: 0
