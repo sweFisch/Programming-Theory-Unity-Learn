@@ -217,7 +217,15 @@ public class PlayerController : MonoBehaviour
                 _playerDeath.Drowning();
 
             }
-            if(terrain.terrainType == TerrainType.MovingBlock)
+            if (terrain.terrainType == TerrainType.Spike)
+            {
+                Debug.Log("Fell into Spikes!");
+                _destination = _transform.position;
+                _playerDeath.DeathBySpikes();
+
+            }
+
+            if (terrain.terrainType == TerrainType.MovingBlock)
             {
                 _currentMovingBlock = terrain.transform;
                 //Debug.Log("Standing on moving block");

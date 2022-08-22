@@ -14,5 +14,6 @@ public enum TerrainType
     Grass,
     Road,
     Water,
-    MovingBlock
+    MovingBlock,
+    Spike
 }

@@ -15,6 +15,7 @@ public class PlayerDeath : MonoBehaviour
     [SerializeField] PlayerAnimationController _playerAnimationController;
     [SerializeField] GameObject gfxMesh;
     [SerializeField] ParticleSystem _drowningParticles;
+    [SerializeField] ParticleSystem _bloodParticles;
 
     private void Start()
     {
@@ -37,7 +38,8 @@ public class PlayerDeath : MonoBehaviour
 
         if(other.CompareTag(SPIKE))
         {
-
+            // Death is handeld by Terrain Type landing surface
+            //DeathBySpikes();
         }
     }
 
@@ -60,6 +62,12 @@ public class PlayerDeath : MonoBehaviour
         gfxMesh.SetActive(false);
         _drowningParticles.Play();
         // play particle system
+        TakeLife();
+    }
+
+    public void DeathBySpikes()
+    {
+        _bloodParticles.Play();
         TakeLife();
     }
 

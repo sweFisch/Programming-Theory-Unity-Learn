@@ -6,19 +6,42 @@ public class MainManager : MonoBehaviour
 {
     public static MainManager Instance;
 
+    public HighScoreEntry currentHighScore;
+
+    public HighScoreEntry currentPlayerScore;
+
+    public class HighScoreEntry
+    {
+        public int score;
+        public string name;
+    }
+
     private void Awake()
     {
-        if (Instance == null)
+        // Make this an Singelton
+        if (Instance != null)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            Destroy(gameObject);
+            return;
         }
-        else
-        {
-            if (Instance != this)
-            {
-                Destroy(gameObject);
-            }
-        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
+
+    private void Start()
+    {
+        // load highscore from file or player prefs
+
+        // make default player name and set score to 0
+        currentPlayerScore.score = 0;
+        currentPlayerScore.name = "AAA";
+    }
+
+    // Compare highscore and save it if over
+
+    // keep player name active during session
+
+    // Limit characters in name
+
 }
